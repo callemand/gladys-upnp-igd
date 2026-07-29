@@ -1,0 +1,36 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "UPnP / IGD",
+  "description": {
+    "en": "Expose your internet box WAN link state and traffic counters over UPnP/IGD.",
+    "fr": "Exposez l'état du lien WAN et les compteurs de trafic de votre box via UPnP/IGD."
+  },
+  "version": "1.0.0",
+  "docker_image": "ghcr.io/callemand/gladys-upnp-igd:1.0.0",
+  "gladys_version": ">=4.84.0",
+  "cover_image": "https://raw.githubusercontent.com/callemand/gladys-upnp-igd/master/cover.png",
+  "transports": ["local"],
+  "network_discovery": [
+    { "type": "ssdp", "st": "urn:schemas-upnp-org:device:InternetGatewayDevice:1" }
+  ],
+  "config_schema": [
+    {
+      "key": "description_url",
+      "type": "string",
+      "label": {
+        "en": "Box description URL (optional)",
+        "fr": "URL de description de la box (optionnel)"
+      },
+      "placeholder": {
+        "en": "http://192.168.1.1:5000/rootDesc.xml",
+        "fr": "http://192.168.1.1:5000/rootDesc.xml"
+      },
+      "description": {
+        "en": "Only needed if automatic discovery finds nothing: the UPnP device description URL of your box.",
+        "fr": "Nécessaire uniquement si la découverte automatique ne trouve rien : l'URL de description UPnP de votre box."
+      },
+      "required": false
+    }
+  ]
+}

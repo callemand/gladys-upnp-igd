@@ -1,0 +1,10 @@
+node_modules/
+npm-debug.log*
+.env
+.env.*
+data/
+*.log
+.DS_Store
+
+# stray Gladys dev DB files (never part of the integration)
+gladys-development.*
