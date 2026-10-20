@@ -4,7 +4,7 @@
 // -----------------------------------------------------------------------------
 
 import { logger } from '@gladysassistant/integration-sdk';
-import { ACTION, CONNECTED_STATUS, SERVICE } from '../constants.js';
+import { ACTION, CONNECTED_STATUS, MAX_UI4, SERVICE } from '../constants.js';
 import { callSoap, extractTag, fetchText, parseDescription } from './soap.js';
 
 /**
@@ -55,6 +55,19 @@ function readInteger(xml, tag) {
 }
 
 /**
+ * Read a traffic counter. Some boxes (e.g. the Orange Livebox) do not wrap a
+ * full 32-bit counter back to 0: they keep it stuck at the max value. A stuck
+ * counter means nothing, so it is treated as missing.
+ * @param {string} xml SOAP response body
+ * @param {string} tag output tag name (e.g. 'NewTotalBytesSent')
+ * @returns {number|undefined}
+ */
+function readCounter(xml, tag) {
+  const value = readInteger(xml, tag);
+  return value === MAX_UI4 ? undefined : value;
+}
+
+/**
  * Call one SOAP action, tolerating a missing service or a box refusal (returns
  * undefined instead of throwing — a box may not implement every counter).
  * @param {{ services: Array }} gateway
@@ -100,16 +113,16 @@ export async function getBoxStatus(gateway) {
   const status = {};
 
   if (bytesSentXml !== undefined) {
-    status.bytesSent = readInteger(bytesSentXml, 'NewTotalBytesSent');
+    status.bytesSent = readCounter(bytesSentXml, 'NewTotalBytesSent');
   }
   if (bytesReceivedXml !== undefined) {
-    status.bytesReceived = readInteger(bytesReceivedXml, 'NewTotalBytesReceived');
+    status.bytesReceived = readCounter(bytesReceivedXml, 'NewTotalBytesReceived');
   }
   if (packetsSentXml !== undefined) {
-    status.packetsSent = readInteger(packetsSentXml, 'NewTotalPacketsSent');
+    status.packetsSent = readCounter(packetsSentXml, 'NewTotalPacketsSent');
   }
   if (packetsReceivedXml !== undefined) {
-    status.packetsReceived = readInteger(packetsReceivedXml, 'NewTotalPacketsReceived');
+    status.packetsReceived = readCounter(packetsReceivedXml, 'NewTotalPacketsReceived');
   }
   if (statusXml !== undefined) {
     const connectionStatus = extractTag(statusXml, 'NewConnectionStatus');
