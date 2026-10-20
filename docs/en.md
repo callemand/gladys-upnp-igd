@@ -27,15 +27,19 @@ Each box exposes these read-only features:
 - **Connection status** — whether the WAN link is up or down;
 - **External IP** — your public internet IP address;
 - **Uptime** — how long the internet connection has been up (seconds);
-- **Bytes sent** / **Bytes received** — total traffic counters;
+- **Download rate** / **Upload rate**: the average data rate (Mbit/s) since the
+  previous poll, refreshed every 15 seconds;
 - **Packets sent** / **Packets received** — total packet counters.
 
 ## Notes
 
-- The byte and packet counters come straight from the box's IGD service. On many
-  boxes these counters are **32-bit and wrap back to zero at ~4 GB** — the raw
-  value is reported as-is, so expect the graph to reset periodically on those
-  boxes.
+- The rates are computed from the box's byte counters. These counters are
+  **32-bit**: most boxes wrap them back to zero at ~4.29 GB, which the
+  integration handles. Some boxes (for example the Orange Livebox) keep them
+  stuck at the max value instead. On those boxes, no rate can be computed.
+- The first rate appears on the second poll, about 15 seconds after the start.
+- The packet counters come straight from the box. They are 32-bit too, so
+  expect the graph to reset periodically.
 - Nothing is controllable: a box exposes only statistics over IGD, so every
   feature is read-only.
 - UPnP/IGD must be **enabled** on your box (it usually is by default).
