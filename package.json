@@ -1,6 +1,6 @@
 {
   "name": "gladys-upnp-igd",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "description": "UPnP/IGD external integration for Gladys Assistant: expose your internet box WAN link state and traffic counters.",
   "type": "module",
