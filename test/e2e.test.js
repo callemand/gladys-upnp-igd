@@ -197,8 +197,8 @@ test('the integration discovers via SSDP, polls the box, and rejects writes', as
         'connection-status',
         'external-ip',
         'uptime',
-        'bytes-sent',
-        'bytes-received',
+        'download-rate',
+        'upload-rate',
         'packets-sent',
         'packets-received',
       ],
@@ -225,15 +225,29 @@ test('the integration discovers via SSDP, polls the box, and rejects writes', as
     const byCode = Object.fromEntries(
       states.map((s) => [s.device_feature_external_id.split(':').pop(), s.state ?? s.text]),
     );
+    // First poll: no previous reading yet, so no rate and never the raw bytes.
     assert.deepEqual(byCode, {
       'connection-status': 1,
       uptime: 3600,
-      'bytes-sent': BOX_STATUS_VALUES.bytesSent,
-      'bytes-received': BOX_STATUS_VALUES.bytesReceived,
       'packets-sent': BOX_STATUS_VALUES.packetsSent,
       'packets-received': BOX_STATUS_VALUES.packetsReceived,
       'external-ip': BOX_STATUS_VALUES.externalIp,
     });
+  });
+
+  await t.test('a second poll publishes the data rates', async () => {
+    send('external-integration.device.poll', { message_id: 'poll-2', device: pollDevice });
+    await waitUntil(
+      () => gladys.state.commandResults.some((r) => r.message_id === 'poll-2'),
+      `second poll ack\n${output}`,
+    );
+    const states = gladys.state.statePosts.at(-1);
+    const byCode = Object.fromEntries(
+      states.map((s) => [s.device_feature_external_id.split(':').pop(), s.state ?? s.text]),
+    );
+    // The fake box counters do not move between the two polls.
+    assert.equal(byCode['download-rate'], 0);
+    assert.equal(byCode['upload-rate'], 0);
   });
 
   await t.test('a set-value command is acked as failed (features are read-only)', async () => {

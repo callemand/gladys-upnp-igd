@@ -6,10 +6,12 @@
 // only integration-specific values live here.
 // -----------------------------------------------------------------------------
 
-// The box is polled every 60 seconds (must be one of the Gladys
-// DEVICE_POLL_FREQUENCIES values, in milliseconds). WAN counters change slowly
-// and the box answers over SOAP, so there is no point polling faster.
-export const POLL_FREQUENCY = 60 * 1000;
+// The box is polled every 15 seconds (must be one of the Gladys
+// DEVICE_POLL_FREQUENCIES values, in milliseconds). The data rate comes from
+// the difference between two polls of a 32-bit byte counter: the shorter the
+// gap, the higher the rate we can measure before the counter wraps twice
+// (~2.29 Gbit/s at 15 s, only ~570 Mbit/s at 60 s).
+export const POLL_FREQUENCY = 15 * 1000;
 
 // HTTP timeout (ms) for every SOAP / description request to the box.
 export const REQUEST_TIMEOUT = 10 * 1000;
@@ -51,14 +53,19 @@ export const CONNECTED_STATUS = 'Connected';
 // IGD counters and uptime are UPnP `ui4` (32-bit) values: they wrap at this max.
 // Used as the upper bound of the counter/duration features.
 export const MAX_UI4 = 4294967295;
+export const UI4_MODULO = MAX_UI4 + 1;
+
+// Highest data rate we accept (Mbit/s). A higher value comes from a counter
+// reset, not from real traffic, so it is dropped.
+export const MAX_RATE_MBPS = 10000;
 
 // Feature codes (the `<featureKey>` suffix of a feature external_id).
 export const FEATURE_CODES = {
   CONNECTION_STATUS: 'connection-status',
   EXTERNAL_IP: 'external-ip',
   UPTIME: 'uptime',
-  BYTES_SENT: 'bytes-sent',
-  BYTES_RECEIVED: 'bytes-received',
+  DOWNLOAD_RATE: 'download-rate',
+  UPLOAD_RATE: 'upload-rate',
   PACKETS_SENT: 'packets-sent',
   PACKETS_RECEIVED: 'packets-received',
 };

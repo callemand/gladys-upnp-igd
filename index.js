@@ -21,6 +21,7 @@ import { GladysIntegration, logger } from '@gladysassistant/integration-sdk';
 import { normalizeConfig } from './src/config.js';
 import { getBoxStatus, loadGateway } from './src/upnp/client.js';
 import { parseSsdpResults } from './src/upnp/discovery.js';
+import { computeRates } from './src/upnp/rate.js';
 import {
   boxExternalIds,
   convertDevice,
@@ -91,12 +92,24 @@ gladys.onScanRequest(async () => {
 });
 
 // --- Polling: Gladys asks to refresh a device --------------------------------
+// Last byte-counter reading per box, to compute the data rate on the next poll.
+// Kept in memory only: after a restart, the first poll publishes no rate.
+const lastReadings = new Map();
+
 gladys.onPoll(async (device) => {
   const descriptionUrl = getDescriptionUrl(device);
   const gateway = await loadGateway(descriptionUrl);
   const platformId = gatewayPlatformId(gateway);
   const status = await getBoxStatus(gateway);
-  const states = buildPollStates(boxExternalIds(gladys, platformId), status);
+  const reading = {
+    at: Date.now(),
+    uptime: status.uptime,
+    bytesSent: status.bytesSent,
+    bytesReceived: status.bytesReceived,
+  };
+  const rates = computeRates(lastReadings.get(platformId), reading);
+  lastReadings.set(platformId, reading);
+  const states = buildPollStates(boxExternalIds(gladys, platformId), { ...status, ...rates });
   if (states.length > 0) {
     await gladys.publishStates(states);
   }

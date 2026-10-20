@@ -14,8 +14,8 @@ test('buildBoxFeatures declares the seven read-only WAN features', () => {
       'connection-status',
       'external-ip',
       'uptime',
-      'bytes-sent',
-      'bytes-received',
+      'download-rate',
+      'upload-rate',
       'packets-sent',
       'packets-received',
     ],
@@ -30,12 +30,14 @@ test('buildBoxFeatures declares the seven read-only WAN features', () => {
   );
 });
 
-test('buildPollStates maps a full status, using text for the IP', () => {
+test('buildPollStates maps a full status, using text for the IP, never the raw bytes', () => {
   const states = buildPollStates(ids, {
     connectionStatus: 1,
     uptime: 3600,
     bytesSent: 10,
     bytesReceived: 20,
+    downloadRate: 12.5,
+    uploadRate: 3.25,
     packetsSent: 30,
     packetsReceived: 40,
     externalIp: '203.0.113.42',
@@ -43,8 +45,8 @@ test('buildPollStates maps a full status, using text for the IP', () => {
   assert.deepEqual(states, [
     { device_feature_external_id: 'ext:test:box:abc:connection-status', state: 1 },
     { device_feature_external_id: 'ext:test:box:abc:uptime', state: 3600 },
-    { device_feature_external_id: 'ext:test:box:abc:bytes-sent', state: 10 },
-    { device_feature_external_id: 'ext:test:box:abc:bytes-received', state: 20 },
+    { device_feature_external_id: 'ext:test:box:abc:download-rate', state: 12.5 },
+    { device_feature_external_id: 'ext:test:box:abc:upload-rate', state: 3.25 },
     { device_feature_external_id: 'ext:test:box:abc:packets-sent', state: 30 },
     { device_feature_external_id: 'ext:test:box:abc:packets-received', state: 40 },
     { device_feature_external_id: 'ext:test:box:abc:external-ip', text: '203.0.113.42' },
