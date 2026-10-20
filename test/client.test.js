@@ -134,3 +134,24 @@ test('getBoxStatus skips a service the box does not expose', async (t) => {
   assert.equal(status.externalIp, undefined);
   assert.equal(status.bytesReceived, 987654321);
 });
+
+test('getBoxStatus drops a counter stuck at the 32-bit max (Orange Livebox)', async (t) => {
+  const stuck = (action, tag) => ({
+    ok: true,
+    status: 200,
+    text: async () => soapResponse(SERVICE_TYPES.COMMON, action, tag, 4294967295),
+  });
+  const original = global.fetch;
+  global.fetch = fakeFetch({
+    GetTotalBytesSent: stuck('GetTotalBytesSent', 'NewTotalBytesSent'),
+    GetTotalBytesReceived: stuck('GetTotalBytesReceived', 'NewTotalBytesReceived'),
+  });
+  t.after(() => {
+    global.fetch = original;
+  });
+
+  const status = await getBoxStatus(GATEWAY);
+  assert.equal(status.bytesSent, undefined, 'a stuck counter is not published');
+  assert.equal(status.bytesReceived, undefined, 'a stuck counter is not published');
+  assert.equal(status.packetsSent, BOX_STATUS_VALUES.packetsSent, 'the other counters are kept');
+});
